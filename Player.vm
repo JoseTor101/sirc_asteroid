@@ -1,0 +1,241 @@
+function Player.new 0
+push constant 4
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push argument 1
+pop this 1
+push argument 2
+pop this 2
+push argument 3
+pop this 3
+push pointer 0
+return
+function Player.SetPosition 0
+push argument 0
+pop pointer 0
+push argument 1
+pop this 0
+push argument 2
+pop this 1
+push argument 3
+pop this 2
+push constant 0
+return
+function Player.Draw 0
+push argument 0
+pop pointer 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 0
+call Map.render_player_front 5
+pop temp 0
+push constant 0
+return
+function Player.DrawExploded 0
+push argument 0
+pop pointer 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+call Map.render_circle 5
+pop temp 0
+push constant 0
+return
+function Player.AddZPosition 0
+push argument 0
+pop pointer 0
+push this 2
+push argument 1
+add
+pop this 2
+push constant 0
+return
+function Player.Shoot 0
+push argument 0
+pop pointer 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push this 1
+push this 2
+push constant 40
+add
+call Map.render_line 7
+pop temp 0
+push constant 0
+return
+function Player.ShootMegaBlast 0
+push argument 0
+pop pointer 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push this 1
+push this 2
+push constant 40
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+add
+push this 1
+push this 2
+push constant 40
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+sub
+push this 1
+push this 2
+push constant 40
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+add
+push this 1
+push this 2
+push constant 20
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+sub
+push this 1
+push this 2
+push constant 20
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+add
+push this 1
+push this 2
+push constant 10
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+sub
+push this 1
+push this 2
+push constant 10
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+add
+push this 1
+push this 2
+push constant 5
+add
+call Map.render_line 7
+pop temp 0
+push this 3
+push this 0
+push this 1
+push this 2
+push constant 2
+add
+push this 0
+push constant 6
+sub
+push this 1
+push this 2
+push constant 5
+add
+call Map.render_line 7
+pop temp 0
+push constant 0
+return
+function Player.AddXPosition 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+add
+pop this 0
+push constant 0
+return
+function Player.GetXPosition 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function Player.GetZPosition 0
+push argument 0
+pop pointer 0
+push this 2
+return
+function Player.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return

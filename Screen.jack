@@ -1,0 +1,304 @@
+class Screen {
+
+    // 512x256
+
+	static boolean whitePixel;
+	static boolean blackPixel;
+	static boolean color;
+	static Array screen;
+	static Array buffer;
+	static boolean useBuffer;
+
+	//static int ScreenWidth, ScreenHeight;
+	
+	static Array twoToThe;
+
+    /** Initializes the Screen. */
+    function void init() {
+		var int i;
+
+		let useBuffer = true;
+
+		let screen = 16384;
+		let buffer = Array.new(8192);
+		do Screen.clearBuffer();
+
+		let whitePixel = false;
+		let blackPixel = true;
+		let color = blackPixel;
+
+		//let ScreenWidth = 512;
+        //let ScreenHeight = 256;
+
+		let twoToThe = Array.new(16);
+		let twoToThe[0] = 1;
+		let twoToThe[1] = 2;
+		let twoToThe[2] = 4; 
+		let twoToThe[3] = 8;
+		let twoToThe[4] = 16;
+		let twoToThe[5] = 32;
+		let twoToThe[6] = 64;
+		let twoToThe[7] = 128;
+		let twoToThe[8] = 256;
+		let twoToThe[9] = 512;
+		let twoToThe[10] = 1024;
+		let twoToThe[11] = 2048;
+		let twoToThe[12] = 4096;
+		let twoToThe[13] = 8192;
+		let twoToThe[14] = 16384;
+		let twoToThe[15] = 16384 + 16384;
+
+		return;
+	}
+
+	function boolean GetUseBuffer()
+	{
+		return useBuffer;
+	}
+	function void SetUseBuffer(boolean set)
+	{
+		let useBuffer = set;
+		return;
+	}
+
+    /** Erases the whole screen. */
+    function void clearScreen() {
+    	var int i;
+		let i = 0;
+		//while (i < 8192) {
+		while (i < 4096) {
+			let screen[i] = color;
+			let i = i + 1;
+		}
+
+		let i = 4096;
+		while (i < 8192) {
+			let screen[i] = color;
+			let i = i + 1;
+		}
+		return;
+	}
+
+	function void clearBuffer() {
+		var int i;
+        let i = 0;
+        while (i < 8192) {
+            let buffer[i] = color;
+            let i = i + 1;
+        }
+        return;
+    }
+
+	function void renderScreen() {
+        var int i;
+        let i = 0;
+        while (i < 8192) {
+            let screen[i] = buffer[i];
+            let i = i + 1;
+        }
+
+		//do Screen.clearBuffer();
+        return;
+    }
+
+    /** Sets the color to be used in further draw commands
+     *  where white = false, black = true. */
+    function void setColor(boolean b) {
+    	let color = b;
+		return;
+	}
+
+    /** Draws the (x, y) pixel. */
+    function void drawPixel(int x, int y) {
+    	var int address;
+		var int mask;
+		var boolean isPixelSet;
+
+		var int ScreenWidth;
+    	var int ScreenHeight;
+
+		var int i;
+
+    	let ScreenWidth = 511;
+    	let ScreenHeight = 255;
+
+        // Check if the pixel is within the screen bounds
+        if (y > ScreenHeight){
+			return;
+        }if (x > ScreenWidth){
+            return;
+        }if (x < 1){
+			return;
+		}if (y < 1){
+			return;
+		}
+
+		let address = (y * 32) + (x / 16);
+		let mask = Math.two_to_the(x & 15);
+
+		if (useBuffer)
+		{
+			// Check the current color of the pixel
+    		if ((buffer[address] & mask) = 0)
+			{
+				let isPixelSet = false;
+			}
+			else
+			{
+				let isPixelSet = true;
+			}
+
+			if (isPixelSet)
+			{
+    	    	// If the pixel is set (i.e., color is on), turn it off
+				let buffer[address] = buffer[address] & ~mask;	
+    		}
+			else
+			{
+    		    // If the pixel is not set (i.e., color is off), turn it on
+				let buffer[address] = buffer[address] | mask;
+			}
+
+			return;
+		}
+
+		// Check the current color of the pixel
+    	if ((screen[address] & mask) = 0)
+		{
+			let isPixelSet = false;
+		}
+		else
+		{
+			let isPixelSet = true;
+		}
+
+					
+    	// Toggle the pixel based on its current state
+    	if (isPixelSet) {
+    	    // If the pixel is set (i.e., color is on), turn it off
+			let screen[address] = screen[address] & ~mask;
+			
+    	} else {
+    	    // If the pixel is not set (i.e., color is off), turn it on
+			let screen[address] = screen[address] | mask;
+		}
+
+		return;
+	}
+
+    /** Draws a line from (x1, y1) to (x2, y2). */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+		//http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+		var int dx,dy,sx,sy, err,e2;
+		let dx = Math.abs(x2-x1);
+		let dy = Math.abs(y2-y1);
+		if(x1<x2)
+		{
+			let sx = 1;
+		}
+		else
+		{
+			let sx = -1;
+		}
+		
+		if(y1<y2)
+		{
+			let sy = 1;
+		}
+		else
+		{
+			let sy = -1;
+		}
+		
+		let err = dx-dy;
+		
+		while(~( (x1 = x2) & (y1 = y2)))
+		{
+			do Screen.drawPixel(x1,y1);
+			let e2 = err+err;
+			if(e2 > -dy){
+				let err = err-dy;
+				let x1 = x1+sx;
+			}
+			
+			if(e2 < dx){
+				let err = err+dx;
+				let y1 = y1+sy;
+			}
+		}
+		do Screen.drawPixel(x1,y1);
+		return;
+    }
+
+    /** Draws a filled rectangle where the top left corner
+     *  is (x1, y1) and the bottom right corner is (x2, y2). */
+    function void drawRectangle(int x1, int y1, int x2, int y2) 
+	{
+		while(~(y1 = y2))
+		{
+			do Screen.drawLine(x1,y1, x2,y1);
+			let y1 = y1+1;
+		}
+		do Screen.drawLine(x1,y1, x2,y1);
+		return;
+    }
+
+    /** Draws a filled circle of radius r around (cx, cy). */
+	
+    function void drawCircle(int x0, int y0, int radius) {
+		//http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+		var int x,y, radiusError;
+		let x = radius;
+		let y = 0;
+		let radiusError = 1-x;
+
+		while( (x = y) | (x > y))
+	    {
+			do Screen.drawLine(x + x0, y + y0, -x + x0, y + y0);
+			do Screen.drawLine(y + x0, x + y0, -y + x0, x + y0);
+			do Screen.drawLine(-x + x0, -y + y0, x + x0, -y + y0);
+			do Screen.drawLine(y + x0, -x + y0, -y + x0, -x + y0);
+		
+			let y = y +1;
+			if (radiusError<0)
+			{
+				let radiusError = radiusError + (2 * y) + 1;
+			} 
+			else 
+			{
+				let x = x-1;
+				let radiusError = radiusError + (2 * (y - x + 1));
+			}
+		}
+		return;
+    }
+	function void drawCircleNoFill(int x0, int y0, int radius) {
+    	//http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+		var int x, y, t1, t2;
+		let t1 = radius/2;
+		let x = radius;
+		let y = 0;
+
+		while( (x = y) | (x > y))
+	    {
+			do Screen.drawPixel(x + x0, y + y0); // Octant 1
+        	do Screen.drawPixel(y + x0, x + y0); // Octant 2
+        	do Screen.drawPixel(-x + x0, y + y0); // Octant 4
+        	do Screen.drawPixel(-y + x0, x + y0); // Octant 3
+        	do Screen.drawPixel(-x + x0, -y + y0); // Octant 5
+        	do Screen.drawPixel(-y + x0, -x + y0); // Octant 6
+        	do Screen.drawPixel(x + x0, -y + y0); // Octant 8
+        	do Screen.drawPixel(y + x0, -x + y0); // Octant 7
+			
+			let y = y + 1;
+			let t1 = t1 + y;
+			let t2 = t1 - x;
+			if ((t2>0) | (t2=0))
+			{
+				let t1 = t2;
+				let x =  x - 1;
+			}
+		}
+		return;
+	}
+}

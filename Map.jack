@@ -1,0 +1,428 @@
+class Map
+{
+    field Array map;
+    field int w, h;
+    field int camera_direction;
+    field Vector3D camera_position;
+    field int distance_to_screen;
+    field int render_distance;
+
+    constructor Map new(int Width, int Height)
+    {
+        var int row, col;
+        var Array actual_row;
+        var Array player_position;
+
+        // PLAYER
+        let player_position = Array.new(2);
+        let player_position[0] = 0;
+        let player_position[1] = 0;
+
+        // CAMERA
+        let camera_position = Vector3D.new(0, -2, 0);
+        let camera_direction = 0;
+        let distance_to_screen = 90;
+        let render_distance = 200;
+
+        // MAP
+        let w = Width;
+        let h = Height;
+        let map = Array.new(h);
+        let row = 0;
+
+        while (row < h)
+        {
+            let map[row] = Array.new(w);
+            let actual_row = map[row];
+    
+            let col = 0;
+            while (col < w)
+            {
+                // FLOOR = 0
+                // WALL = 1
+                let actual_row[col] = 0;
+                let col = col + 1;
+            }
+            let row = row + 1;
+        }
+
+        return this;
+    }
+
+    method int get_camera_direction()
+    {
+        return camera_direction;
+    }
+    method void add_camera_direction(int valueToAdd)
+    {
+        let camera_direction = camera_direction + valueToAdd;
+        if (camera_direction > 360)
+        {
+            let camera_direction = camera_direction - 360;
+        }
+        if (camera_direction < 360)
+        {
+            let camera_direction = camera_direction + 360;
+        }
+
+        return;
+    }
+    method Array get_camera_position()
+    {
+        return camera_position;
+    }
+    method void add_camera_rotation(int xValue, int zValue)
+    {
+        do camera_rotation.Add(xValue, zValue);
+        return;
+    }
+
+    method void set_camera_position(int xPos, int yPos, int zPos)
+    {
+        let camera_position[0] = xPos;
+        let camera_position[1] = yPos;
+        let camera_position[2] = zPos;
+        return;
+    }
+    method void render_pixel(int xPos, int yPos, int zPos)
+    {
+        var int x, y, z;
+        var int newXPos, newYPos;
+
+        // Relative positions
+        let x = xPos - camera_position[0];
+        let y = yPos - camera_position[1];
+        let z = zPos - camera_position[2];
+
+        if (z > 0)
+        {
+            if (z < render_distance)
+            {
+                let newYPos = y * distance_to_screen / z;
+                let newXPos = x * distance_to_screen / z;
+                do Screen.drawPixel(newXPos + 256, newYPos + 128);
+            }
+        }        
+        return;
+    }
+
+    // drawRectangle(int x1, int y1, int x2, int y2) 
+    method void render_rectangle(int startXPos, int startYPos, int startZPos, int endXPos, int endYPos, int endZPos)
+    {
+        var int xS, yS, zS, xE, yE, zE;
+        var int newXStartPos, newYStartPos, newXEndPos, newYEndPos;
+
+        // Relative positions
+        let xS = startXPos - camera_position[0];
+        let yS = startYPos - camera_position[1];
+        let zS = startZPos - camera_position[2];
+        let xE = endXPos - camera_position[0];
+        let yE = endYPos - camera_position[1];
+        let zE = endZPos - camera_position[2];
+
+        let newXStartPos = xS * distance_to_screen / zS;
+        let newYStartPos = yS * distance_to_screen / zS;   
+        let newXEndPos = xE * distance_to_screen / zE;
+        let newYEndPos = yE * distance_to_screen / zE;
+
+        do Screen.drawRectangle(newXStartPos + 256, newYStartPos + 128, newXEndPos + 256, newYEndPos + 128);
+
+        return;
+    }
+
+    // drawLine(int x1, int y1, int x2, int y2)
+    method void render_line(int startXPos, int startYPos, int startZPos, int endXPos, int endYPos, int endZPos)
+    {
+        var int xS, yS, zS, xE, yE, zE;
+        var int newXStartPos, newYStartPos, newXEndPos, newYEndPos;
+        var int intersectionX, intersectionY, newIntersectionX, newIntersectionY;
+
+        // Relative positions
+        let xS = startXPos - camera_position[0];
+        let yS = startYPos - camera_position[1];
+        let zS = startZPos - camera_position[2];
+        let xE = endXPos - camera_position[0];
+        let yE = endYPos - camera_position[1];
+        let zE = endZPos - camera_position[2];
+
+        // Division by 0 error handling
+        if (zS = 0) { let zS = 1; }
+        if (zE = 0) { let zE = 1; }
+
+        let newXStartPos = xS * distance_to_screen / zS;
+        let newYStartPos = yS * distance_to_screen / zS;   
+        let newXEndPos = xE * distance_to_screen / zE;
+        let newYEndPos = yE * distance_to_screen / zE;   
+
+        if (zS > 0)
+        {
+            if (zE > 0)
+            {
+                // Normal draw
+                do Screen.drawLine(newXStartPos + 256, newYStartPos + 128, newXEndPos + 256, newYEndPos + 128);
+            }
+        }
+        // Else, line start isF behind camera z position
+        else
+        {
+            if (zE > 0)
+            {
+                // Idk how did I figured this out...
+                let newXStartPos = xS * (distance_to_screen * (-zS + camera_position[2])) / zS;
+                let newYStartPos = yS * (distance_to_screen * (-zS + camera_position[2])) / zS;  
+                do Screen.drawLine(-newXStartPos + 256 , -newYStartPos + 128, newXEndPos + 256, newYEndPos + 128);
+            }    
+        }
+         
+
+        return;
+    }
+
+    //    tip
+    //     /\
+    //    /  \
+    //  d/____\c 
+    // a/______\b
+    //
+    method void render_pyramid_top(int xPos, int yPos, int zPos, int width, int height)
+    {
+        var int center_offset;
+        let center_offset = width/2;
+        // a to Tip
+        do render_line(xPos - center_offset, yPos, zPos - center_offset, xPos, yPos - height, zPos);
+        // b to Tip
+        do render_line(xPos + center_offset, yPos, zPos - center_offset, xPos, yPos - height, zPos);
+        // c to Tip
+        do render_line(xPos + center_offset, yPos, zPos + center_offset, xPos, yPos - height, zPos);
+        // d to Tip
+        do render_line(xPos - center_offset, yPos, zPos + center_offset, xPos, yPos - height, zPos);
+
+        //
+        return;
+    }
+    // width
+    //   |  a -\----/- b
+    //   |    | \__/ | <----- center (xPos, yPos, zPos)
+    //   |    | /  \ |
+    //   |  c |/____\| d
+    //
+    // A pyramid facing away the camera
+    method void render_pyramid_front(int xPos, int yPos, int zPos, int width, int height, boolean optimize)
+    {
+        var int center_offset;
+        if (width = 1)
+        {
+            let center_offset = 1;
+        }
+        else
+        {
+            if (center_offset > 1)
+            {
+                let center_offset = width / 2;
+            } 
+        }
+
+        if (optimize)
+        {
+            // 3D OCLUSSION
+            // First, if camera x is the same from the center x, so it's looking at the ass of the pyramid
+            // Meaning it should not render all the lines of the tip
+            if (camera_position[0] > xPos | camera_position[0] < xPos)
+            {
+                // Second, if camera x  > center x (xPos)
+                // It means is looking from the right side, so it should not render the left side of the pyramid
+                if (camera_position[0] > xPos)
+                {
+                    // b to Tip
+                    do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + height);
+                    // d to Tip
+                    do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + height);
+                }
+                if (camera_position[0] < xPos)
+                {
+                    // a to Tip
+                    do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + height);
+                    // c to Tip
+                    do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + height);
+                }
+            }       
+
+            // Sides union
+            // a to b
+            do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos - center_offset, zPos);
+            // b to d
+            do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos + center_offset, zPos);
+            // d to c
+            do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos + center_offset, zPos);
+            // c to a
+            do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos - center_offset, zPos);
+        }
+        else
+        {
+            // a to Tip
+            do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + height);
+            // b to Tip
+            do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + height);
+            // c to Tip
+            do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + height);
+            // d to Tip
+            do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + height);
+
+            // Sides union
+            // a to b
+            do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos - center_offset, zPos);
+            // b to d
+            do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos + center_offset, zPos);
+            // d to c
+            do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos + center_offset, zPos);
+            // c to a
+            do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos - center_offset, zPos);
+        }
+        
+
+        //
+        return;
+    }
+    method void render_player_front(int xPos, int yPos, int zPos, boolean optimize)
+    {
+        var int center_offset;
+        let center_offset = 1;
+
+        if (optimize)
+        {
+            // 3D OCLUSSION
+            // First, if camera x is the same from the center x, so it's looking at the ass of the pyramid
+            // Meaning it should not render all the lines of the tip
+            if (camera_position[0] > xPos | camera_position[0] < xPos)
+            {
+                // Second, if camera x  > center x (xPos)
+                // It means is looking from the right side, so it should not render the left side of the pyramid
+                if (camera_position[0] > xPos)
+                {
+                    // b to Tip
+                    do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + 2);
+                    // d to Tip
+                    do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + 2);
+                }
+                if (camera_position[0] < xPos)
+                {
+                    // a to Tip
+                    do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + 2);
+                    // c to Tip
+                    do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + 2);
+                }
+            }       
+
+            // Sides union
+            // a to b
+            do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos - center_offset, zPos);
+            // b to d
+            do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos + center_offset, zPos);
+            // d to c
+            do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos + center_offset, zPos);
+            // c to a
+            do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos - center_offset, zPos);
+        }
+        else
+        {
+            // a to Tip
+            do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + 2);
+            // b to Tip
+            do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos, yPos, zPos + 2);
+            // c to Tip
+            do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + 2);
+            // d to Tip
+            do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos, yPos, zPos + 2);
+
+            // Sides union
+            // a to b
+            do render_line(xPos - center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos - center_offset, zPos);
+            // b to d
+            do render_line(xPos + center_offset, yPos - center_offset, zPos, xPos + center_offset, yPos + center_offset, zPos);
+            // d to c
+            do render_line(xPos + center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos + center_offset, zPos);
+            // c to a
+            do render_line(xPos - center_offset, yPos + center_offset, zPos, xPos - center_offset, yPos - center_offset, zPos);
+        }
+        
+
+        //
+        return;
+    }
+
+    //
+    //  --------
+    //  |      |
+    //  |______|
+    //
+    method void render_plane(int startXPos, int startYPos, int startZPos, int endXPos, int endYPos, int endZPos)
+    {
+        // LINEA DE PROFUNDIDAD
+        do render_line(2, 0, 10, 2, 0, 40);
+        // LINEA SUPERIOR INICIAL
+        do render_line(2, 0, 10, 2, -5, 10);
+        // LINEA SUPERIOR FINAL
+        do render_line(2, 0, 40, 2, -5, 40);
+        // LINEA UNION SUPERIORES
+        do render_line(2, -5, 10, 2, -5, 40);
+
+        return;
+    }
+
+    // drawCircle(int x0, int y0, int radius)
+   method void render_circle(int xPos, int yPos, int zPos, int extra_radius)
+    {
+        var int newYPos, newXPos, radius, newDirection;
+        var int x, y, z;
+
+        let x = xPos - camera_position[0];
+        let y = yPos - camera_position[1];
+        let z = zPos - camera_position[2];
+
+        // Only draw the sprite if is in front of the screen
+        if (z > 0)
+        {
+            if (z < render_distance)
+            {
+                let newYPos = y * distance_to_screen / z;
+                let newXPos = x * distance_to_screen / z;
+                let radius = extra_radius * distance_to_screen / z;
+
+                do Screen.drawCircle(newXPos + 256, newYPos + 128, radius); 
+            }
+        }   
+
+        return;
+    }
+
+    method void render_circle_no_fill(int xPos, int yPos, int zPos, int extra_radius)
+    {
+        var int newYPos, newXPos, radius, newDirection;
+        var int x, y, z;
+
+        let x = xPos - camera_position[0];
+        let y = yPos - camera_position[1];
+        let z = zPos - camera_position[2];
+
+        // Only draw the sprite if is in front of the screen
+        if (z > 0)
+        {
+            if (z < render_distance)
+            {
+                let newYPos = y * distance_to_screen / z;
+                let newXPos = x * distance_to_screen / z;
+                let radius = extra_radius * distance_to_screen / z;
+
+                do Screen.drawCircleNoFill(newXPos + 256, newYPos + 128, radius); 
+            }
+        }   
+
+        return;
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

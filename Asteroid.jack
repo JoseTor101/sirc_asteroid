@@ -1,0 +1,100 @@
+class Asteroid
+{
+    field int x, y, z;
+    field Map map;
+    field boolean destroyed;
+    field int hp;
+    field Vector3D lastPosition;
+
+    constructor Asteroid new(int posX, int posY, int posZ, Map mapInstance)
+    {
+        let x = posX;
+        let y = posY;
+        let z = posZ;
+        let map = mapInstance;
+        let lastPosition = Vector3D.new(x, y, z);
+
+        let hp = 2;
+        
+        return this;
+    }
+
+    method void SetPosition(int posX, int posY, int posZ)
+    {
+        do lastPosition.SetPosition(x, y, z);
+
+        let x = posX;
+        let y = posY;
+        let z = posZ;
+        return;
+    }
+
+    method void SetZPosition(int posZ)
+    {
+        do lastPosition.SetPosition(x, y, z);
+        let z = posZ;
+        return;
+    }
+
+    method Vector3D GetLastPosition()
+    {
+        return lastPosition;
+    }
+
+    method void GetShot()
+    {
+        let hp = hp - 1;
+        if (hp < 1)
+        {
+            do SetPosition(-1, -1, -1);
+            let destroyed = true;
+        }
+
+        return;
+    }
+    method void GetShotMegaBlast()
+    {
+        do map.render_circle(lastPosition.GetXPosition(),  lastPosition.GetYPosition(), lastPosition.GetZPosition(), 2);
+        do SetPosition(-1, -1, -1);
+        let destroyed = true;
+        return;
+    }
+
+    method boolean GetDestroyed()
+    {
+        return destroyed;
+    }
+    method void SetDestroyed(boolean set)
+    {
+        let destroyed = set;
+        return;
+    }
+
+    method void Draw()
+    {
+        do map.render_circle_no_fill(x, y, z, 2);
+        return;
+    }
+
+    method void AddZPosition(int zPlus)
+    {
+        do lastPosition.SetPosition(x, y, z);
+        let z = z + zPlus;
+        return;
+    }
+
+    method int GetXPosition()
+    {
+        return x;
+    }
+    method int GetZPosition()
+    {
+        return z;
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

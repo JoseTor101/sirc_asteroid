@@ -1,0 +1,328 @@
+class Main
+{
+    static int points;
+
+    function void AddPoints(int addValue)
+    {
+        let points = points + addValue;
+        return;
+    }
+
+    function void main()
+    {
+        var boolean running, usingBuffer;
+        var int key, i;
+
+        var int asteroid_speed, difficulty, difficulty_counter;
+
+        var Map map;
+        var Array camera_position;
+
+        var int xChange, zChange;
+
+        // Asteroids
+        var Array asteroids;
+        var int asteroidsCount;
+        var Asteroid actualAsteroid;
+        // Player
+        var Player player;
+        var int playerX;
+        var boolean playerIsDead;
+        var boolean hasMegaCharge;
+        var int megaCharge_counter;
+
+        // values vary from 0 to 2 inclusive
+        var int randomVal;
+        // values vary from 0 to 4 inclusive
+        var int randomVal2;
+        // Save positions here
+        var int randomX, randomZ;
+
+        var Vector3D lastAsteroidPosition;
+
+        let points = 0;
+        let difficulty = 0; let difficulty_counter = 0;
+
+        let hasMegaCharge = false;
+
+        do Screen.setColor(true);
+        
+        let map = Map.new(16, 16);
+        let camera_position = map.get_camera_position();
+        
+        // Player
+        let player = Player.new(0, 1, 3, map);
+        let playerIsDead = false;
+
+        // Asteroids
+        let asteroid_speed = 1;
+        let asteroidsCount = 3;
+        let i = 0;
+        let asteroids = Array.new(asteroidsCount);
+        while (i < asteroidsCount)
+        {
+            // Start asteroids randomly
+            let randomVal = Random.randRange(2);
+            let randomVal2 = Random.randRange(4);
+
+            // Use randomVal to select which X position the asteroid will spawn
+            if (randomVal = 0){ let randomX = 0; }
+            if (randomVal = 1){ let randomX = 6; }
+            if (randomVal = 2){ let randomX = -6; }
+            // Use randomVal2 to select which Z position the asteroid will spawn
+            if (randomVal2 = 0){ let randomZ = 37; }
+            if (randomVal2 = 1){ let randomZ = 40; }
+            if (randomVal2 = 2){ let randomZ = 43; }
+            if (randomVal2 = 3){ let randomZ = 34; }
+            if (randomVal2 = 4){ let randomZ = 31; }
+
+            let asteroids[i] = Asteroid.new(randomX, 0, randomZ, map);
+            let i = i + 1;
+        }
+
+        do LCGRandom.setSeed(1);
+
+        if (~(Screen.GetUseBuffer()))
+        { do Screen.clearScreen(); }
+        else { do Screen.renderScreen(); }
+
+        let running = true;
+        let usingBuffer = Screen.GetUseBuffer();
+
+        while (running)
+        {
+            do Random.setSeed(LCGRandom.rand());
+            let randomVal = Random.randRange(2);
+            let randomVal2 = Random.randRange(4);
+
+            if (~(Screen.GetUseBuffer()))
+            { do Screen.clearScreen(); }
+
+            do Output.moveCursor(1,1);
+            do Output.printInt(points);
+            do Output.moveCursor(3,1);
+            do Output.printInt(difficulty);
+            
+            if (hasMegaCharge)
+            { do Output.moveCursor(4, 25); do Output.printString("CHARGE READY!"); }
+            //else
+            //{ do Output.printString("NOT R"); }
+
+            // Checks for collision or reset position on every asteroid
+            let i = 0;
+            while (i < asteroidsCount)
+            {
+                let actualAsteroid = asteroids[i];
+                let lastAsteroidPosition = actualAsteroid.GetLastPosition();
+                
+                // If asteroid is in player
+                if (actualAsteroid.GetZPosition() = player.GetZPosition())
+                {
+                    if ((actualAsteroid.GetXPosition() = player.GetXPosition()))
+                    {
+                        let playerIsDead = true;
+                        let running = false;
+                    }
+                                   
+                }
+                // If asteroid went through player
+                if ((lastAsteroidPosition.GetZPosition() + 1 > player.GetZPosition()) & (actualAsteroid.GetZPosition() - 1 < player.GetZPosition()))
+                {
+                    if ((actualAsteroid.GetXPosition() = player.GetXPosition()))
+                    {
+                        let playerIsDead = true;
+                        let running = false;
+                    }
+                }
+                
+                // Reset asteroid if went trough screen
+                if (actualAsteroid.GetZPosition() < 0)
+                {
+                    let randomVal = Random.randRange(2);
+                    let randomVal2 = Random.randRange(4);
+
+                    // Use randomVal to select which X position the asteroid will spawn
+                    if (randomVal = 0){ let randomX = 0; }
+                    if (randomVal = 1){ let randomX = 6; }
+                    if (randomVal = 2){ let randomX = -6; }
+                    // Use randomVal2 to select which Z position the asteroid will spawn
+                    if (randomVal2 = 0){ let randomZ = 37; }
+                    if (randomVal2 = 1){ let randomZ = 40; }
+                    if (randomVal2 = 2){ let randomZ = 43; }
+                    if (randomVal2 = 3){ let randomZ = 34; }
+                    if (randomVal2 = 4){ let randomZ = 31; }
+
+                    do actualAsteroid.SetPosition(randomX, 0, randomZ);
+
+                    // If was destroyed add points
+                    if (actualAsteroid.GetDestroyed())
+                    {
+                        do Main.AddPoints(10);
+                        do actualAsteroid.SetDestroyed(false);
+                    }
+                    else{
+                        do Main.AddPoints(-10);
+                    }
+                    
+                }
+
+                let i = i + 1;
+            }
+            
+            let playerX = player.GetXPosition();
+
+            // Asteroids Draw and speed
+            let i = 0;
+            while (i < asteroidsCount)
+            {
+                let actualAsteroid = asteroids[i];
+
+                do actualAsteroid.Draw();
+
+                do actualAsteroid.AddZPosition(-(asteroid_speed + difficulty));           
+
+                let i = i + 1;
+            }
+
+            // Player Info and Draw
+            //do Output.moveCursor(0,1);
+            //do Output.printInt(playerX);
+            if (playerIsDead)
+            {
+                if (usingBuffer)
+                { do Screen.SetUseBuffer(false); }
+
+                //do Screen.clearScreen();
+                
+                // Draw asteroids
+                //let i = 0;
+                //while(i < asteroidsCount)
+                //{ let actualAsteroid = asteroids[i]; do actualAsteroid.Draw(); }
+                // Draw player dead
+                do player.DrawExploded();
+
+                if (usingBuffer)
+                { do Screen.SetUseBuffer(true); }
+            }
+            else
+            { do player.Draw(); } 
+
+            if (usingBuffer)
+            { do Screen.renderScreen(); }
+
+            let key = Keyboard.keyPressed();
+
+            if (key = 130) // left
+            {
+                // Clamp values
+                if ((playerX = 0) | (playerX = 6))
+                {
+                    do player.AddXPosition(-6);
+                }
+            }
+            if (key = 131) // up
+            {
+                if (usingBuffer)
+                { do Screen.SetUseBuffer(false); }
+
+                do player.Shoot();
+
+                // Detect shooting
+                let i = 0;
+                while (i < asteroidsCount)
+                {
+                    let actualAsteroid = asteroids[i];
+                    if (actualAsteroid.GetXPosition() = player.GetXPosition())
+                    {
+                        do actualAsteroid.GetShot();
+                    }
+
+                    let i = i + 1;
+                }
+
+                if (usingBuffer)
+                { do Screen.SetUseBuffer(true); }
+            }
+            if (key = 132) // right
+            {
+                // Clamp values
+                if ((playerX = 0) | (playerX = -6))
+                {
+                    do player.AddXPosition(6);
+                }
+            }       
+            if (key = 133) // down
+            {
+                // Mega blast
+                // Lo voy a llamar sirC-Shoot (Cris al revés)
+                if (hasMegaCharge)
+                {
+                    if (usingBuffer)
+                    { do Screen.SetUseBuffer(false); }
+                    
+                    do player.ShootMegaBlast();
+
+                    // Detect shooting for all asteroids
+                    let i = 0;
+                    while (i < asteroidsCount)
+                    {
+                        let actualAsteroid = asteroids[i];
+                        do actualAsteroid.GetShotMegaBlast();
+                        let i = i + 1;
+                    }
+
+                    let hasMegaCharge = false;
+                    let megaCharge_counter = 0;
+                    
+                    if (usingBuffer)
+                    { do Screen.SetUseBuffer(true); }
+                }               
+            }
+
+            // Poinst clamp
+            if (points < 0)
+            { let points = 0; }
+
+            // Add difficulty every 10 frames
+            if (difficulty_counter = 10)
+            { let difficulty_counter = 0; let difficulty = difficulty + 1; }
+            else
+            { let difficulty_counter = difficulty_counter + 1; }
+
+            // Add megacharge every 25 frames
+            if (megaCharge_counter = 25)
+            { let megaCharge_counter = 0; let hasMegaCharge = true; }
+            else
+            { let megaCharge_counter = megaCharge_counter + 1; }
+
+            if (~(Screen.GetUseBuffer()))
+            { do Sys.wait(30); }
+            //else
+            //{ do Sys.wait(50); }
+
+            do Screen.clearBuffer();
+            let usingBuffer = Screen.GetUseBuffer();
+        }
+
+        do Sys.wait(1000);
+
+        do Screen.clearScreen();
+        do Output.moveCursor(5, 27);
+        do Output.printString("GAME OVER!");
+        do Output.moveCursor(7, 26);
+        do Output.printString("YOUR  POINTS:");
+        do Output.moveCursor(9, 26);
+        do Output.printInt(points);
+        do Output.moveCursor(11, 26);
+        do Output.printString("DIFFICULTY:");
+        do Output.moveCursor(13, 26);
+        do Output.printInt(difficulty);
+        do Output.moveCursor(15, 26);
+        do Output.printString("TOTAL SCORE:");
+        do Output.moveCursor(16, 26);
+        do Output.printInt((difficulty * points));
+        do Sys.wait(8000);
+
+        return;
+    }
+}

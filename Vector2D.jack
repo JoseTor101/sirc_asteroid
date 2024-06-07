@@ -1,0 +1,29 @@
+class Vector2D
+{
+    field int x, y;
+
+    constructor Vector2D new(int posX, int posY)
+    {
+        let x = posX;
+        let y = posY;
+        return this;
+    }
+
+    method void SetPosition(int posX, int posY)
+    {
+        let x = posX;
+        let y = posY;
+        return;
+    }
+
+    function Vector2D Copy(Vector2D source)
+    {
+        return Vector2D.new(source[0], source[1]);
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

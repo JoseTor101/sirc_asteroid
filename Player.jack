@@ -1,0 +1,78 @@
+class Player
+{
+    field int x, y, z;
+    field Map map;
+
+    constructor Player new(int posX, int posY, int posZ, Map mapInstance)
+    {
+        let x = posX;
+        let y = posY;
+        let z = posZ;
+        let map = mapInstance;
+        
+        return this;
+    }
+
+    method void SetPosition(int posX, int posY, int posZ)
+    {
+        let x = posX;
+        let y = posY;
+        let z = posZ;
+        return;
+    }
+
+    method void Draw()
+    {
+        do map.render_player_front(x, y, z, false);
+        return;
+    }
+    method void DrawExploded()
+    {
+        do map.render_circle(x, y, z, 2);
+        return;
+    }
+
+    method void AddZPosition(int zPlus)
+    {
+        let z = z + zPlus;
+        return;
+    }
+    method void Shoot()
+    {
+        do map.render_line(x, y, z+2, x, y, z + 40);
+        return;
+    }
+    method void ShootMegaBlast()
+    {
+        do map.render_line(x, y, z+2, x, y, z + 40);
+        do map.render_line(x, y, z+2, x + 6, y, z + 40);
+        do map.render_line(x, y, z+2, x - 6, y, z + 40);
+        do map.render_line(x, y, z+2, x + 6, y, z + 20);
+        do map.render_line(x, y, z+2, x - 6, y, z + 20);
+        do map.render_line(x, y, z+2, x + 6, y, z + 10);
+        do map.render_line(x, y, z+2, x - 6, y, z + 10);
+        do map.render_line(x, y, z+2, x + 6, y, z + 5);
+        do map.render_line(x, y, z+2, x - 6, y, z + 5);
+        return;
+    }
+
+    method void AddXPosition(int xPlus)
+    {
+        let x = x + xPlus;
+        return;
+    }
+    method int GetXPosition()
+    {
+        return x;
+    }
+    method int GetZPosition()
+    {
+        return z;
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

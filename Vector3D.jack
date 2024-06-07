@@ -1,0 +1,44 @@
+class Vector3D
+{
+    field int x, y, z;
+
+    constructor Vector3D new(int posX, int posY, int posZ)
+    {
+        let x = posX;
+        let y = posY;
+        let z = posZ;
+        return this;
+    }
+
+    method void SetPosition(int posX, int posY, int posZ)
+    {
+        let x = posX;
+        let y = posY;
+        let z = posZ;
+        return;
+    }
+
+    method int GetXPosition()
+    {
+        return x;
+    }
+    method int GetYPosition()
+    {
+        return y;
+    }
+    method int GetZPosition()
+    {
+        return z;
+    }
+
+    function Vector3D Copy(Vector3D source)
+    {
+        return Vector3D.new(source[0], source[1], source[2]);
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+}
